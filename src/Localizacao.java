@@ -1,62 +1,50 @@
-// Classe Localizacao
 public class Localizacao {
-    private final double latitude;
-    private final double longitude;
-    private final String regiao;
+    private float latitude;
+    private float longitude;
 
-    public Localizacao(double latitude, double longitude) {
+    public Localizacao(float latitude, float longitude) {
+        if (latitude < -90.0f || latitude > 90.0f) {
+            throw new IllegalArgumentException("Latitude deve estar entre -90 e 90 graus");
+        }
+        if (longitude < -180.0f || longitude > 180.0f) {
+            throw new IllegalArgumentException("Longitude deve estar entre -180 e 180 graus");
+        }
+
         this.latitude = latitude;
         this.longitude = longitude;
-        this.regiao = determinarRegiao();
     }
 
-    /**
-     * Verifica se a localização está em área de risco elevado
-     * @return true se área de risco, false caso contrário
-     */
-    public boolean verificarAreaRisco() {
-        return latitude < -20.0 && longitude < -45.0;
+    public float getLatitude() {
+        return latitude;
     }
 
-    /**
-     * Calcula a prioridade de atendimento baseada na região e risco
-     * @param nivelRisco - nível de risco detectado
-     * @return valor numérico de prioridade (1-10, sendo 10 mais urgente)
-     */
-    public int calcularPrioridadeAtendimento(String nivelRisco) {
-        int prioridade = 1;
-
-        // Prioridade baseada na região
-        switch (regiao) {
-            case "Norte": prioridade += 3; break;
-            case "Centro": prioridade += 2; break;
-            case "Sul": prioridade += 1; break;
-        }
-
-        // Prioridade baseada no risco
-        switch (nivelRisco) {
-            case "CRÍTICO": prioridade += 5; break;
-            case "ALTO": prioridade += 3; break;
-            case "MÉDIO": prioridade += 2; break;
-            case "BAIXO": prioridade += 1; break;
-        }
-
-        // Área de risco adiciona prioridade
-        if (verificarAreaRisco()) {
-            prioridade += 2;
-        }
-
-        return Math.min(prioridade, 10); // Máximo 10
-    }
-
-    private String determinarRegiao() {
-        if (latitude >= -10) return "Norte";
-        else if (latitude >= -20) return "Centro";
-        else return "Sul";
+    public float getLongitude() {
+        return longitude;
     }
 
     @Override
     public String toString() {
-        return String.format("Lat: %.4f, Lon: %.4f, Região: %s", latitude, longitude, regiao);
+        return String.format("Localização: %.6f°, %.6f°", latitude, longitude);
+    }
+
+    // Método para calcular distância entre duas localizações (em km)
+    public double calcularDistancia(Localizacao outraLocalizacao) {
+        final double R = 6371.0; // Raio da Terra em km
+
+        double lat1Rad = Math.toRadians(this.latitude);
+        double lon1Rad = Math.toRadians(this.longitude);
+        double lat2Rad = Math.toRadians(outraLocalizacao.latitude);
+        double lon2Rad = Math.toRadians(outraLocalizacao.longitude);
+
+        double deltaLat = lat2Rad - lat1Rad;
+        double deltaLon = lon2Rad - lon1Rad;
+
+        double a = Math.sin(deltaLat/2) * Math.sin(deltaLat/2) +
+                Math.cos(lat1Rad) * Math.cos(lat2Rad) *
+                        Math.sin(deltaLon/2) * Math.sin(deltaLon/2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+        return R * c;
     }
 }

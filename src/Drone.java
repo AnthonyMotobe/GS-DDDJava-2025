@@ -1,21 +1,48 @@
+// Classe Drone
 public class Drone {
-    private final int id;
-    private final boolean disponivel;
-    private final double autonomiaBateria;
-    private final String status;
+    private int id;
+    private boolean disponivel;
+    private Localizacao localizacaoAtual;
 
-    public Drone(int id) {
+    public Drone(int id, Localizacao localizacaoInicial) {
         this.id = id;
         this.disponivel = true;
-        this.autonomiaBateria = 100.0;
-        this.status = "AGUARDANDO";
+        this.localizacaoAtual = localizacaoInicial;
     }
 
+    public void alocar() {
+        if (!disponivel) {
+            throw new IllegalStateException("Drone já está alocado");
+        }
+        this.disponivel = false;
+    }
+
+    public void liberar() {
+        this.disponivel = true;
+    }
+
+    public boolean isDisponivel() {
+        return disponivel;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public Localizacao getLocalizacaoAtual() {
+        return localizacaoAtual;
+    }
+
+    public void moverPara(Localizacao novaLocalizacao) {
+        this.localizacaoAtual = novaLocalizacao;
+    }
 
     @Override
     public String toString() {
-        return String.format("Drone ID: %d - Status: %s, Bateria: %.1f%%, Disponível: %s",
-                id, status, autonomiaBateria, disponivel ? "Sim" : "Não");
+        return String.format("Drone %d - %s - %s",
+                id,
+                disponivel ? "Disponível" : "Em missão",
+                localizacaoAtual.toString()
+        );
     }
-
 }

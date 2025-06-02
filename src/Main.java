@@ -1,83 +1,108 @@
-import javax.swing.*;
+class FireGuardianMain {
 
-public static void main(String[] args) {
-    // Opção 1: Usando Scanner para entrada via console
-    Scanner scanner = new Scanner(System.in);
+    private static float lerFloat(java.util.Scanner scanner, String mensagem, float min, float max) {
+        float valor;
+        while (true) {
+            try {
+                System.out.print(mensagem);
+                String input = scanner.nextLine().trim();
 
-    System.out.println("=== SISTEMA FIRE GUARDIAN ===");
-    System.out.println("Informe os dados da ocorrência:");
+                if (input.isEmpty()) {
+                    System.out.println("Por favor, digite um valor válido.");
+                    continue;
+                }
 
-    // Coletando dados da localização
-    System.out.print("Latitude: ");
-    double lat = scanner.nextDouble();
+                // Substitui vírgula por ponto para compatibilidade
+                input = input.replace(",", ".");
+                valor = Float.parseFloat(input);
 
-    System.out.print("Longitude: ");
-    double lon = scanner.nextDouble();
+                if (valor < min || valor > max) {
+                    System.out.printf("Valor deve estar entre %.2f e %.2f\n", min, max);
+                    continue;
+                }
 
-    // Coletando dados ambientais
-    System.out.print("Temperatura (°C): ");
-    double temp = scanner.nextDouble();
+                break;
 
-    System.out.print("Umidade (%): ");
-    double umid = scanner.nextDouble();
-
-    System.out.print("Velocidade do vento (km/h): ");
-    double vento = scanner.nextDouble();
-
-    // Criando objetos
-    Localizacao local = new Localizacao(lat, lon);
-    Sensor sensor = new Sensor(1);
-
-    // Validando parâmetros
-    if (!sensor.validarParametros(temp, umid, vento)) {
-        System.out.println("ERRO: Parâmetros inválidos!");
-        return;
+            } catch (NumberFormatException e) {
+                System.out.println("Por favor, digite um número válido (use ponto para decimais).");
+            }
+        }
+        return valor;
     }
 
-    Queimada queimada = new Queimada(local, sensor, temp, umid, vento);
-    Ocorrencia ocorrencia = new Ocorrencia(queimada);
+    public static void main(String[] args) {
+        java.util.Scanner scanner = new java.util.Scanner(System.in);
+        scanner.useLocale(java.util.Locale.US); // Para usar ponto como separador decimal
 
-    // Criando recursos
-    Drone drone = new Drone(1);
-    Equipe equipe = new Equipe(1, 6, "FLORESTAL", new Localizacao(lat - 0.05, lon - 0.05));
+        // Criando recursos disponíveis com coordenadas float
+        java.util.List<Drone> drones = new java.util.ArrayList<>();
+        drones.add(new Drone(1, new Localizacao(-23.5505f, -46.6333f))); // São Paulo
+        drones.add(new Drone(2, new Localizacao(-22.9068f, -43.1729f))); // Rio de Janeiro
+        drones.add(new Drone(3, new Localizacao(-15.7801f, -47.9292f))); // Brasília
 
-    ocorrencia.setDroneAlocado(drone);
-    ocorrencia.setEquipeAlocada(equipe);
+        java.util.List<Equipe> equipes = new java.util.ArrayList<>();
+        equipes.add(new Equipe(1, 5, new Localizacao(-23.5505f, -46.6333f))); // São Paulo
+        equipes.add(new Equipe(2, 7, new Localizacao(-22.9068f, -43.1729f))); // Rio de Janeiro
+        equipes.add(new Equipe(3, 4, new Localizacao(-15.7801f, -47.9292f))); // Brasília
 
-    // Exibindo informações
-    System.out.println("\n=== ANÁLISE DA OCORRÊNCIA ===");
-    System.out.println("Localização: " + local);
-    System.out.println("Sensor: " + sensor);
-    System.out.println("Queimada: " + queimada);
-    System.out.println("Prioridade de Atendimento: " + local.calcularPrioridadeAtendimento(queimada.getIntensidade()));
-    System.out.println("Urgência da Resposta: " + queimada.determinarUrgenciaResposta());
+        System.out.println("=== SISTEMA FIREGUARDIAN ===");
+        System.out.println("Digite as informações da ocorrência:");
+        System.out.println("(Use ponto como separador decimal, ex: -23.5505)");
+        System.out.println();
 
-    // Cálculos operacionais
-    double custoOperacao = ocorrencia.calcularCustoOperacao(200.0, 100.0, 3.0);
-    double impactoAmbiental = queimada.avaliarImpactoAmbiental(2.0);
-    double eficiencia = ocorrencia.avaliarEficienciaResposta(1.5, 2);
+        try {
+            // Lendo dados com validação
+            float latitude = lerFloat(scanner, "Latitude (-90 a 90): ", -90.0f, 90.0f);
+            float longitude = lerFloat(scanner, "Longitude (-180 a 180): ", -180.0f, 180.0f);
+            float temperatura = lerFloat(scanner, "Temperatura em °C (0 a 60): ", 0.0f, 60.0f);
+            float umidade = lerFloat(scanner, "Umidade em % (0 a 100): ", 0.0f, 100.0f);
 
-    System.out.println("\n=== RESULTADOS ===");
-    System.out.println("Custo da Operação: R$ " + String.format("%.2f", custoOperacao));
-    System.out.println("Impacto Ambiental: " + String.format("%.1f", impactoAmbiental) + "/100");
-    System.out.println("Eficiência da Resposta: " + String.format("%.1f", eficiencia) + "%");
+            System.out.println("\nProcessando dados...");
 
-    // Usando JOptionPane como alternativa
-    String opcao = JOptionPane.showInputDialog("Deseja ver relatório detalhado? (s/n)");
-    if (opcao != null && opcao.equalsIgnoreCase("s")) {
-        String relatorio = "RELATÓRIO DETALHADO\n" +
-                "==================\n" +
-                "Drone: " + drone + "\n" +
-                "Equipe: " + equipe + "\n" +
-                "Capacidade Operacional: " +
-                equipe.calcularCapacidadeOperacional(queimada.getIntensidade(), queimada.getAreaAfetada()) +
-                "/100\n" +
-                "Recursos Necessários: " +
-                equipe.determinarRecursosNecessarios(queimada.getIntensidade()) + "\n";
+            // Criando objetos do sistema
+            Localizacao localizacao = new Localizacao(latitude, longitude);
+            Sensor sensor = new Sensor(temperatura, umidade);
+            Queimada queimada = new Queimada(localizacao, sensor);
+            Ocorrencia ocorrencia = new Ocorrencia(queimada, drones, equipes);
 
-        JOptionPane.showMessageDialog(null, relatorio);
+            // Exibindo relatório
+            System.out.println("\n" + ocorrencia.gerarRelatorioCompleto());
+
+            ocorrencia.finalizar();
+            System.out.println("Ocorrência finalizada. Recursos liberados.");
+
+        } catch (IllegalArgumentException e) {
+            System.err.println("Erro de validação: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Erro inesperado: " + (e.getMessage() != null ? e.getMessage() : "Erro desconhecido"));
+            e.printStackTrace();
+        } finally {
+            scanner.close();
+        }
     }
 
-    scanner.close();
-    System.out.println("\nSistema finalizado com sucesso!");
+    // adicionando para demonstração com dados de exemplo
+    public static void exemploComDadosFixos() {
+        System.out.println("=== EXEMPLO COM DADOS FIXOS ===");
+
+        // Criando recursos
+        java.util.List<Drone> drones = new java.util.ArrayList<>();
+        drones.add(new Drone(1, new Localizacao(-23.5505f, -46.6333f))); // São Paulo
+        drones.add(new Drone(2, new Localizacao(-22.9068f, -43.1729f))); // Rio de Janeiro
+
+        java.util.List<Equipe> equipes = new java.util.ArrayList<>();
+        equipes.add(new Equipe(1, 5, new Localizacao(-23.5505f, -46.6333f))); // São Paulo
+        equipes.add(new Equipe(2, 7, new Localizacao(-22.9068f, -43.1729f))); // Rio de Janeiro
+
+        // Simulando uma ocorrência em Campinas/SP
+        Localizacao localizacao = new Localizacao(-22.9056f, -47.0608f); // Campinas
+        Sensor sensor = new Sensor(38.5f, 25.2f); // Condições de alto risco
+        Queimada queimada = new Queimada(localizacao, sensor);
+        Ocorrencia ocorrencia = new Ocorrencia(queimada, drones, equipes);
+
+        System.out.println(ocorrencia.gerarRelatorioCompleto());
+
+        ocorrencia.finalizar();
+        System.out.println("\nOcorrência de exemplo finalizada.");
+    }
 }

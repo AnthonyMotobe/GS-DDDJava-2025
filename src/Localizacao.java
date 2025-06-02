@@ -1,3 +1,4 @@
+/* Representa a localização geográfica de uma queimada.*/
 public class Localizacao {
     private final Double latitude;
     private final Double longitude;

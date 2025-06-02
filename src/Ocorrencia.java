@@ -1,61 +1,78 @@
-/* Representa uma ocorrência de combate a incêndio, */
-/* incluindo a queimada detectada, drone e equipe alocados. */
-
 public class Ocorrencia {
-    private Queimada queimada;
-    private Drone drone;
-    private Equipe equipe;
-
-    /* Construtor da classe Ocorrencia. */
-    /* @param queimada a queimada detectada */
+    private Drone droneAlocado;
+    private Equipe equipeAlocada;
+    private final Queimada queimada;
+    private final String status;
+    private double custoOperacional;
 
     public Ocorrencia(Queimada queimada) {
         this.queimada = queimada;
+        this.status = "INICIADA";
+        this.custoOperacional = 0.0;
     }
 
-    /* Aloca um drone diretamente à ocorrência. */
-    /* @param drone o drone a ser alocado */
+    /**
+     * Calcula o custo total da operação
+     * @param custoHoraDrone - custo por hora do drone
+     * @param custoHoraEquipe - custo por hora da equipe
+     * @param tempoOperacao - tempo total em horas
+     * @return custo total em reais
+     */
+    public double calcularCustoOperacao(double custoHoraDrone, double custoHoraEquipe, double tempoOperacao) {
+        double custoTotal = 0.0;
 
-    public void alocarDrone(Drone drone) {
-        if (drone.isDisponivel()) {
-            this.drone = drone;
-            drone.alocar();
+        if (droneAlocado != null) {
+            custoTotal += custoHoraDrone * tempoOperacao;
         }
-    }
 
-     /* Aloca um drone a partir de seu ID, sobrecarga do anterior */
-     /* @param id identificador do drone */
-
-    public void alocarDrone(String id) {
-        Drone novoDrone = new Drone(id);
-        alocarDrone(novoDrone);
-    }
-
-     /* Aloca uma equipe à ocorrência. */
-     /* @param equipe a equipe disponível */
-
-    public void alocarEquipe(Equipe equipe) {
-        if (equipe.isDisponivel()) {
-            this.equipe = equipe;
-            equipe.alocar();
+        if (equipeAlocada != null) {
+            custoTotal += custoHoraEquipe * tempoOperacao * equipeAlocada.getNumeroMembros();
         }
+
+        // Custo adicional baseado na intensidade
+        switch (queimada.getIntensidade()) {
+            case "CRÍTICO": custoTotal *= 1.8; break;
+            case "ALTO": custoTotal *= 1.5; break;
+            case "MÉDIO": custoTotal *= 1.2; break;
+        }
+
+        this.custoOperacional = custoTotal;
+        return custoTotal;
     }
 
-     /* Gera um relatório completo da ocorrência. */
-     /* @return relatório em formato de string */
+    /**
+     * Avalia a eficiência da resposta
+     * @param tempoResposta - tempo de resposta em horas
+     * @param recursos - número de recursos utilizados
+     * @return índice de eficiência (0-100)
+     */
+    public double avaliarEficienciaResposta(double tempoResposta, int recursos) {
+        double eficiencia = 100.0;
 
-    public String gerarRelatorio() {
-        String relatorio = queimada.gerarRelatorio() + "\n";
-        relatorio += (drone != null ? "Drone alocado: " + drone.getId() : "Sem drone alocado") + "\n";
-        relatorio += (equipe != null ? "Equipe alocada: " + equipe.getNome() : "Sem equipe alocada");
-        return relatorio;
+        // Penalidade por tempo de resposta lento
+        if (tempoResposta > 4) eficiencia -= 40;
+        else if (tempoResposta > 2) eficiencia -= 20;
+        else if (tempoResposta > 1) eficiencia -= 10;
+
+        // Penalidade por uso excessivo de recursos
+        int recursosNecessarios = queimada.determinarUrgenciaResposta();
+        if (recursos > recursosNecessarios * 1.5) eficiencia -= 20;
+
+        // Bônus por resposta rápida em casos críticos
+        if (queimada.getIntensidade().equals("CRÍTICO") && tempoResposta <= 1) {
+            eficiencia += 10;
+        }
+
+        return Math.min(100, eficiencia);
     }
 
-     /* Sobrescrita do toString para retornar o relatório da ocorrência. */
-     /* @return relatório da ocorrência */
+    public void setDroneAlocado(Drone droneAlocado) { this.droneAlocado = droneAlocado; }
+
+    public void setEquipeAlocada(Equipe equipeAlocada) { this.equipeAlocada = equipeAlocada; }
 
     @Override
     public String toString() {
-        return gerarRelatorio();
+        return String.format("Ocorrência - Status: %s, Custo: R$ %.2f, Urgência: %d",
+                status, custoOperacional, queimada.determinarUrgenciaResposta());
     }
 }

@@ -1,31 +1,58 @@
-/* Representa um sensor que mede temperatura e umidade, calculando risco de incêndio. */
 public class Sensor {
+    private final int id;
     private double temperatura;
     private double umidade;
+    private double velocidadeVento;
 
-    public Sensor(double temperatura, double umidade) {
-        this.temperatura = temperatura;
-        this.umidade = umidade;
+    public Sensor(int id) {
+        this.id = id;
     }
 
-     /* Calcula o risco de incêndio com base na temperatura e umidade. */
-     /* @return risco entre 0.0 (baixo) e 1.0 (alto) */
+    /**
+     * Calcula o índice de risco baseado nas condições ambientais
+     * @param temp - temperatura atual
+     * @param umid - umidade relativa
+     * @param vento - velocidade do vento
+     * @return índice numérico de risco (0-100)
+     */
+    public double calcularIndiceRisco(double temp, double umid, double vento) {
+        this.temperatura = temp;
+        this.umidade = umid;
+        this.velocidadeVento = vento;
 
-    public double calcularRisco() {
-        if (temperatura > 35 && umidade < 20) return 0.9;
-        if (temperatura > 30 && umidade < 30) return 0.7;
-        return 0.3;
+        return (temperatura * 0.4) + ((100 - umidade) * 0.3) + (velocidadeVento * 0.3);
     }
 
-
-     /* Retorna os dados do sensor formatados. */
-     /* @return string com temperatura e umidade */
-    public String getDados() {
-        return "Temp: " + temperatura + "°C, Umid: " + umidade + "%";
+    /**
+     * Determina o nível de alerta baseado no índice de risco
+     * @param indiceRisco - valor do índice calculado
+     * @return string com nível de alerta
+     */
+    public String determinarNivelAlerta(double indiceRisco) {
+        if (indiceRisco >= 70) return "CRÍTICO";
+        else if (indiceRisco >= 50) return "ALTO";
+        else if (indiceRisco >= 30) return "MÉDIO";
+        else return "BAIXO";
     }
 
-     /* Retorna dados do calcularRisco para getRisco */
-    public double getRisco() {
-        return calcularRisco();
+    /**
+     * Valida se os parâmetros estão dentro dos limites seguros
+     * @param temp - temperatura a validar
+     * @param umid - umidade a validar
+     * @param vento - velocidade do vento a validar
+     * @return true se valores são válidos, false caso contrário
+     */
+    public boolean validarParametros(double temp, double umid, double vento) {
+        return temp >= -10 && temp <= 60 &&
+                umid >= 0 && umid <= 100 &&
+                vento >= 0 && vento <= 200;
     }
+
+    // Método com sobrescrita
+    @Override
+    public String toString() {
+        return String.format("Sensor ID: %d - Temp: %.1f°C, Umidade: %.1f%%, Vento: %.1f km/h",
+                id, temperatura, umidade, velocidadeVento);
+    }
+
 }

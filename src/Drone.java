@@ -1,29 +1,21 @@
-/* Representa um drone que pode ser alocado para combate a incêndios. */
-
 public class Drone {
-    private final String id;
-    private boolean disponivel;
+    private final int id;
+    private final boolean disponivel;
+    private final double autonomiaBateria;
+    private final String status;
 
-     /* Construtor da classe Drone. */
-     /* @param id identificador do drone */
-
-    public Drone(String id) {
+    public Drone(int id) {
         this.id = id;
         this.disponivel = true;
+        this.autonomiaBateria = 100.0;
+        this.status = "AGUARDANDO";
     }
 
-    /* Marca o drone como alocado. */
 
-    public void alocar() {
-        disponivel = false;
+    @Override
+    public String toString() {
+        return String.format("Drone ID: %d - Status: %s, Bateria: %.1f%%, Disponível: %s",
+                id, status, autonomiaBateria, disponivel ? "Sim" : "Não");
     }
 
-    public boolean isDisponivel() {
-        return disponivel;
-    }
-
-    public String getId() {
-        return id;
-    }
 }
-

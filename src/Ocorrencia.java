@@ -1,78 +1,106 @@
 public class Ocorrencia {
+    private Queimada queimada;
     private Drone droneAlocado;
     private Equipe equipeAlocada;
-    private final Queimada queimada;
-    private final String status;
-    private double custoOperacional;
+    private java.time.LocalDateTime dataResposta;
 
-    public Ocorrencia(Queimada queimada) {
+    public Ocorrencia(Queimada queimada, java.util.List<Drone> dronesDisponiveis,
+                      java.util.List<Equipe> equipesDisponiveis) {
         this.queimada = queimada;
-        this.status = "INICIADA";
-        this.custoOperacional = 0.0;
+        this.dataResposta = java.time.LocalDateTime.now();
+
+        // Encontra o drone mais próximo disponível
+        this.droneAlocado = encontrarDroneMaisProximo(dronesDisponiveis);
+        if (this.droneAlocado != null) {
+            this.droneAlocado.alocar();
+            this.droneAlocado.moverPara(queimada.getLocalizacao());
+        }
+
+        // Encontra a equipe mais próxima disponível
+        this.equipeAlocada = encontrarEquipeMaisProxima(equipesDisponiveis);
+        if (this.equipeAlocada != null) {
+            this.equipeAlocada.alocar();
+        }
     }
 
-    /**
-     * Calcula o custo total da operação
-     * @param custoHoraDrone - custo por hora do drone
-     * @param custoHoraEquipe - custo por hora da equipe
-     * @param tempoOperacao - tempo total em horas
-     * @return custo total em reais
-     */
-    public double calcularCustoOperacao(double custoHoraDrone, double custoHoraEquipe, double tempoOperacao) {
-        double custoTotal = 0.0;
+    private Drone encontrarDroneMaisProximo(java.util.List<Drone> drones) {
+        Drone maisProximo = null;
+        double menorDistancia = Double.MAX_VALUE;
+
+        for (Drone drone : drones) {
+            if (drone.isDisponivel()) {
+                double distancia = drone.getLocalizacaoAtual().calcularDistancia(queimada.getLocalizacao());
+                if (distancia < menorDistancia) {
+                    menorDistancia = distancia;
+                    maisProximo = drone;
+                }
+            }
+        }
+
+        return maisProximo;
+    }
+
+    private Equipe encontrarEquipeMaisProxima(java.util.List<Equipe> equipes) {
+        Equipe maisProxima = null;
+        double menorDistancia = Double.MAX_VALUE;
+
+        for (Equipe equipe : equipes) {
+            if (equipe.isDisponivel()) {
+                double distancia = equipe.getLocalizacaoBase().calcularDistancia(queimada.getLocalizacao());
+                if (distancia < menorDistancia) {
+                    menorDistancia = distancia;
+                    maisProxima = equipe;
+                }
+            }
+        }
+
+        return maisProxima;
+    }
+
+    public String gerarRelatorioCompleto() {
+        StringBuilder relatorio = new StringBuilder();
+        relatorio.append("=== RELATÓRIO COMPLETO DE OCORRÊNCIA ===\n");
+        relatorio.append("Data/Hora da Resposta: ")
+                .append(dataResposta.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
+                .append("\n\n");
+
+        relatorio.append(queimada.gerarRelatorio()).append("\n\n");
 
         if (droneAlocado != null) {
-            custoTotal += custoHoraDrone * tempoOperacao;
+            relatorio.append("DRONE ALOCADO:\n").append(droneAlocado.toString()).append("\n\n");
+        } else {
+            relatorio.append("NENHUM DRONE DISPONÍVEL\n\n");
         }
 
         if (equipeAlocada != null) {
-            custoTotal += custoHoraEquipe * tempoOperacao * equipeAlocada.getNumeroMembros();
+            relatorio.append("EQUIPE ALOCADA:\n").append(equipeAlocada.toString()).append("\n\n");
+        } else {
+            relatorio.append("NENHUMA EQUIPE DISPONÍVEL\n\n");
         }
 
-        // Custo adicional baseado na intensidade
-        switch (queimada.getIntensidade()) {
-            case "CRÍTICO": custoTotal *= 1.8; break;
-            case "ALTO": custoTotal *= 1.5; break;
-            case "MÉDIO": custoTotal *= 1.2; break;
-        }
+        relatorio.append("=====================================");
 
-        this.custoOperacional = custoTotal;
-        return custoTotal;
+        return relatorio.toString();
     }
 
-    /**
-     * Avalia a eficiência da resposta
-     * @param tempoResposta - tempo de resposta em horas
-     * @param recursos - número de recursos utilizados
-     * @return índice de eficiência (0-100)
-     */
-    public double avaliarEficienciaResposta(double tempoResposta, int recursos) {
-        double eficiencia = 100.0;
-
-        // Penalidade por tempo de resposta lento
-        if (tempoResposta > 4) eficiencia -= 40;
-        else if (tempoResposta > 2) eficiencia -= 20;
-        else if (tempoResposta > 1) eficiencia -= 10;
-
-        // Penalidade por uso excessivo de recursos
-        int recursosNecessarios = queimada.determinarUrgenciaResposta();
-        if (recursos > recursosNecessarios * 1.5) eficiencia -= 20;
-
-        // Bônus por resposta rápida em casos críticos
-        if (queimada.getIntensidade().equals("CRÍTICO") && tempoResposta <= 1) {
-            eficiencia += 10;
+    public void finalizar() {
+        if (droneAlocado != null) {
+            droneAlocado.liberar();
         }
-
-        return Math.min(100, eficiencia);
+        if (equipeAlocada != null) {
+            equipeAlocada.liberar();
+        }
     }
 
-    public void setDroneAlocado(Drone droneAlocado) { this.droneAlocado = droneAlocado; }
+    public Queimada getQueimada() {
+        return queimada;
+    }
 
-    public void setEquipeAlocada(Equipe equipeAlocada) { this.equipeAlocada = equipeAlocada; }
+    public Drone getDroneAlocado() {
+        return droneAlocado;
+    }
 
-    @Override
-    public String toString() {
-        return String.format("Ocorrência - Status: %s, Custo: R$ %.2f, Urgência: %d",
-                status, custoOperacional, queimada.determinarUrgenciaResposta());
+    public Equipe getEquipeAlocada() {
+        return equipeAlocada;
     }
 }

@@ -1,5 +1,25 @@
+/**
+ * Classe principal do sistema FireGuardian para detecção e monitoramento de incêndios florestais.
+ * Esta classe contém a interface de usuário via console para entrada de dados de ocorrências
+ * e demonstração do funcionamento do sistema com dados fixos.
+ *
+ * @author Anthony Motobe
+ * @version 1.0
+ * @since 2025
+ */
 class FireGuardianMain {
 
+    /**
+     * Método utilitário para leitura segura de valores float do console com validação.
+     * Garante que o valor inserido esteja dentro do range especificado e trata
+     * erros de formatação e entrada inválida.
+     *
+     * @param scanner o objeto Scanner para leitura do console
+     * @param mensagem a mensagem a ser exibida para o usuário
+     * @param min valor mínimo aceito (inclusive)
+     * @param max valor máximo aceito (inclusive)
+     * @return o valor float validado inserido pelo usuário
+     */
     private static float lerFloat(java.util.Scanner scanner, String mensagem, float min, float max) {
         float valor;
         while (true) {
@@ -30,6 +50,13 @@ class FireGuardianMain {
         return valor;
     }
 
+    /**
+     * Método principal que executa a aplicação FireGuardian.
+     * Inicializa os recursos do sistema (drones e equipes), coleta dados do usuário
+     * via console, processa uma ocorrência de incêndio e exibe o relatório completo.
+     *
+     * @param args argumentos da linha de comando (não utilizados)
+     */
     public static void main(String[] args) {
         java.util.Scanner scanner = new java.util.Scanner(System.in);
         scanner.useLocale(java.util.Locale.US); // Para usar ponto como separador decimal
@@ -79,30 +106,5 @@ class FireGuardianMain {
         } finally {
             scanner.close();
         }
-    }
-
-    // adicionando para demonstração com dados de exemplo
-    public static void exemploComDadosFixos() {
-        System.out.println("=== EXEMPLO COM DADOS FIXOS ===");
-
-        // Criando recursos
-        java.util.List<Drone> drones = new java.util.ArrayList<>();
-        drones.add(new Drone(1, new Localizacao(-23.5505f, -46.6333f))); // São Paulo
-        drones.add(new Drone(2, new Localizacao(-22.9068f, -43.1729f))); // Rio de Janeiro
-
-        java.util.List<Equipe> equipes = new java.util.ArrayList<>();
-        equipes.add(new Equipe(1, 5, new Localizacao(-23.5505f, -46.6333f))); // São Paulo
-        equipes.add(new Equipe(2, 7, new Localizacao(-22.9068f, -43.1729f))); // Rio de Janeiro
-
-        // Simulando uma ocorrência em Campinas/SP
-        Localizacao localizacao = new Localizacao(-22.9056f, -47.0608f); // Campinas
-        Sensor sensor = new Sensor(38.5f, 25.2f); // Condições de alto risco
-        Queimada queimada = new Queimada(localizacao, sensor);
-        Ocorrencia ocorrencia = new Ocorrencia(queimada, drones, equipes);
-
-        System.out.println(ocorrencia.gerarRelatorioCompleto());
-
-        ocorrencia.finalizar();
-        System.out.println("\nOcorrência de exemplo finalizada.");
     }
 }

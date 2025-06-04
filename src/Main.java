@@ -7,7 +7,7 @@
  * @version 1.0
  * @since 2025
  */
-class FireGuardianMain {
+public class Main {
 
     /**
      * Método utilitário para leitura segura de valores float do console com validação.

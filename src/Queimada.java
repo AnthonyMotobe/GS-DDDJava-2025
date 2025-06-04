@@ -9,9 +9,9 @@
  * @since 1.0
  */
 public class Queimada {
-    private Localizacao localizacao;
-    private Sensor sensor;
-    private java.time.LocalDateTime dataHora;
+    private final Localizacao localizacao;
+    private final Sensor sensor;
+    private final java.time.LocalDateTime dataHora;
 
     /**
      * Constrói uma nova instância de queimada com localização e dados do sensor.
@@ -35,11 +35,12 @@ public class Queimada {
      */
     public String gerarRelatorio() {
         return String.format(
-                "=== RELATÓRIO DE QUEIMADA ===\n" +
-                        "Data/Hora: %s\n" +
-                        "%s\n" +
-                        "%s\n" +
-                        "========================",
+                """
+                        === RELATÓRIO DE QUEIMADA ===
+                        Data/Hora: %s
+                        %s
+                        %s
+                        ========================""",
                 dataHora.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
                 localizacao.toString(),
                 sensor.toString()
@@ -53,23 +54,5 @@ public class Queimada {
      */
     public Localizacao getLocalizacao() {
         return localizacao;
-    }
-
-    /**
-     * Retorna o sensor que detectou a queimada.
-     *
-     * @return o sensor com dados de temperatura e umidade
-     */
-    public Sensor getSensor() {
-        return sensor;
-    }
-
-    /**
-     * Retorna a data e hora em que a queimada foi detectada.
-     *
-     * @return timestamp de quando a queimada foi registrada no sistema
-     */
-    public java.time.LocalDateTime getDataHora() {
-        return dataHora;
     }
 }
